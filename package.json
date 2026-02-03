@@ -1,0 +1,16 @@
+{
+  "name": "mysql-express-faculty-api",
+  "version": "1.0.0",
+  "description": "Example Node.js + Express API demonstrating MySQL interactions (faculty table)",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.11.0",
+    "dotenv": "^16.4.5"
+  }
+}
