@@ -3,7 +3,7 @@ import { pool } from '../config/database.js';
 // Columns safe to expose
 const PUBLIC_COLUMNS = 'OrderId, CustomerID, ItemID, Qty, DiscountPercentage, TotalPrice';
 
-// Get one order by ID
+// Get one order by ID(GET request by ID)
 export async function getOrderById(OrderId) {
   const [rows] = await pool.query(
     `SELECT ${PUBLIC_COLUMNS}
@@ -16,7 +16,7 @@ export async function getOrderById(OrderId) {
   return rows[0] || null;
 }
 
-// List orders (with pagination)
+// List orders (with pagination)(GET request for all)
 export async function listOrders({ limit = 50, offset = 0 } = {}) {
   const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
   const safeOffset = Math.max(parseInt(offset, 10) || 0, 0);
@@ -32,8 +32,8 @@ export async function listOrders({ limit = 50, offset = 0 } = {}) {
   return rows;
 }
 
-// Create a new order
-export async function createOrder({ CustomerID, ItemID, Qty }) {
+// Create a new order(POST request for a new order)
+export async function createOrder({ CustomerID, ItemID, Qty,DiscountPercentage }) {
   const connection = await pool.getConnection();
 
   try {
@@ -64,7 +64,7 @@ const totalPrice = subtotal - discountAmount;
     // 3️⃣ Insert order
     const [result] = await connection.query(
       `INSERT INTO \`092_Orders\` (CustomerID, ItemID, Qty, DiscountPercentage, TotalPrice)
-       VALUES (?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?)`,
       [CustomerID, ItemID, Qty,DiscountPercentage, totalPrice]
     );
 
