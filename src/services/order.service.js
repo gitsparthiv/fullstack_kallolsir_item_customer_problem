@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 // Columns safe to expose
-const PUBLIC_COLUMNS = 'OrderId, CustomerID, ItemID, Qty';
+const PUBLIC_COLUMNS = 'OrderId, CustomerID, ItemID, Qty, DiscountPercentage, TotalPrice';
 
 // Get one order by ID
 export async function getOrderById(OrderId) {
@@ -42,7 +42,7 @@ export async function createOrder({ CustomerID, ItemID, Qty }) {
 
     // 2️⃣ Check item stock (lock row)
     const [[item]] = await connection.query(
-      `SELECT Quantity
+      `SELECT Quantity, Price
        FROM \`092_Items\`
        WHERE ItemID = ?
        FOR UPDATE`,
@@ -57,11 +57,15 @@ export async function createOrder({ CustomerID, ItemID, Qty }) {
       throw new Error('INSUFFICIENT_STOCK');
     }
 
+const subtotal = item.Price * Qty;
+const discountAmount = subtotal * (DiscountPercentage / 100);
+const totalPrice = subtotal - discountAmount;
+
     // 3️⃣ Insert order
     const [result] = await connection.query(
-      `INSERT INTO \`092_Orders\` (CustomerID, ItemID, Qty)
+      `INSERT INTO \`092_Orders\` (CustomerID, ItemID, Qty, DiscountPercentage, TotalPrice)
        VALUES (?, ?, ?)`,
-      [CustomerID, ItemID, Qty]
+      [CustomerID, ItemID, Qty,DiscountPercentage, totalPrice]
     );
 
     // 4️⃣ Reduce item stock
@@ -81,6 +85,8 @@ export async function createOrder({ CustomerID, ItemID, Qty }) {
         [CustomerID]
       );
     }
+    
+
 
     // 6️⃣ Commit transaction
     await connection.commit();
@@ -89,7 +95,9 @@ export async function createOrder({ CustomerID, ItemID, Qty }) {
       OrderId: result.insertId,
       CustomerID,
       ItemID,
-      Qty
+      Qty,
+  DiscountPercentage,
+  TotalPrice: totalPrice
     };
 
   } catch (err) {
