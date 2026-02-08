@@ -35,13 +35,15 @@ import {
   // POST /api/order
   export async function handleCreateOrder(req, res, next) {
     try {
-      const { CustomerID, ItemID, Qty } = req.body;
+      const { CustomerID, ItemID, Qty, DiscountPercentage } = req.body;
   
       const order = await createOrder({
         CustomerID,
         ItemID,
-        Qty
+        Qty,
+        DiscountPercentage
       });
+      
   
       return res.status(201).json(order);
     } catch (err) {
@@ -55,13 +57,13 @@ import {
       const OrderId = Number(req.params.OrderId);
   
       const { CustomerID, ItemID, Qty } = req.body;
-  
-      const updated = await patchOrderById(OrderId, {
-        CustomerID,
-        ItemID,
-        Qty
-      });
-  
+
+const order = await createOrder({
+  CustomerID,
+  ItemID,
+  Qty
+});
+
       if (!updated) {
         return res
           .status(404)

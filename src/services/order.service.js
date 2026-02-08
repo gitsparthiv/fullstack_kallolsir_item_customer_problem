@@ -52,20 +52,39 @@ export async function createOrder({ CustomerID, ItemID, Qty,DiscountPercentage }
     if (!item) {
       throw new Error('ITEM_NOT_FOUND');
     }
+  // ✅ FORCE numbers
+  const qty = Number(Qty);
+  const price = Number(item.Price);
+  const discount = Number(DiscountPercentage ?? 0);
 
-    if (item.Quantity < Qty) {
+  // ✅ VALIDATE numbers
+  if (Number.isNaN(qty) || qty <= 0) {
+    throw new Error('INVALID_QTY');
+  }
+
+  if (Number.isNaN(price)) {
+    throw new Error('INVALID_PRICE');
+  }
+
+  if (Number.isNaN(discount) || discount < 0 || discount > 100) {
+    throw new Error('INVALID_DISCOUNT');
+  }
+
+
+    if (item.Quantity < qty) {
       throw new Error('INSUFFICIENT_STOCK');
     }
 
-const subtotal = item.Price * Qty;
-const discountAmount = subtotal * (DiscountPercentage / 100);
+// 💰 SAFE calculations
+const subtotal = price * qty;
+const discountAmount = subtotal * (discount / 100);
 const totalPrice = subtotal - discountAmount;
 
     // 3️⃣ Insert order
     const [result] = await connection.query(
       `INSERT INTO \`092_Orders\` (CustomerID, ItemID, Qty, DiscountPercentage, TotalPrice)
        VALUES (?, ?, ?, ?, ?)`,
-      [CustomerID, ItemID, Qty,DiscountPercentage, totalPrice]
+      [CustomerID, ItemID, qty, discount, totalPrice]
     );
 
     // 4️⃣ Reduce item stock
@@ -73,7 +92,7 @@ const totalPrice = subtotal - discountAmount;
       `UPDATE \`092_Items\`
        SET Quantity = Quantity - ?
        WHERE ItemID = ?`,
-      [Qty, ItemID]
+      [qty, ItemID]
     );
 
     // 5️⃣ Priority rule
@@ -95,9 +114,9 @@ const totalPrice = subtotal - discountAmount;
       OrderId: result.insertId,
       CustomerID,
       ItemID,
-      Qty,
-  DiscountPercentage,
-  TotalPrice: totalPrice
+      Qty: qty,
+      DiscountPercentage: discount,
+      TotalPrice: totalPrice
     };
 
   } catch (err) {

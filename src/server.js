@@ -1,4 +1,5 @@
-import 'dotenv/config';
+
+import 'dotenv/config';//Loads environment variables from .env . Makes process.env.PORT, process.env.DB_URL, etc. available. Runs once, before anything else
   import { app } from './app.js';
   import { pingDatabase } from './config/database.js';
 
