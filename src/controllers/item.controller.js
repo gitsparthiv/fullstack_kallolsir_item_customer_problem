@@ -35,11 +35,12 @@ import {
   // POST /api/item
   export async function handleCreateItem(req, res, next) {
     try {
-      const { ItemDescription, Quantity } = req.body;
+      const { ItemDescription, Quantity, Price } = req.body;
   
       const item = await createItem({
         ItemDescription,
-        Quantity
+        Quantity,
+        Price
       });
   
       return res.status(201).json(item);

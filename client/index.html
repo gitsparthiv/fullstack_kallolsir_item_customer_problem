@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Management System</title>
+</head>
+<body>
+  <h1>Order Management System</h1>
+
+  <!-- 1. ITEM MANAGEMENT -->
+  <section>
+    <h2>Item Management</h2>
+    <form id="itemForm">
+      <input type="text" id="itemDesc" placeholder="Item Description" required>
+      <input type="number" id="itemQty" placeholder="Quantity" required>
+      <input type="number" id="itemPrice" placeholder="Price" required>
+      <button type="submit">Create Item</button>
+    </form>
+    <button onclick="loadItems()">Refresh Items</button>
+    <div id="itemList"></div>
+  </section>
+
+  <hr>
+
+  <!-- 2. CUSTOMER MANAGEMENT -->
+  <section>
+    <h2>Customer Management</h2>
+    <form id="customerForm">
+      <input type="text" id="custName" placeholder="Customer Name" required>
+      <button type="submit">Create Customer</button>
+    </form>
+    <button onclick="loadCustomers()">Refresh Customers</button>
+    <div id="customerList"></div>
+  </section>
+
+  <hr>
+
+  <!-- 3. ORDER MANAGEMENT -->
+  <section>
+    <h2>Order Management</h2>
+    <form id="orderForm">
+      <input type="number" id="orderCustId" placeholder="Customer ID" required>
+      <input type="number" id="orderItemId" placeholder="Item ID" required>
+      <input type="number" id="orderQty" placeholder="Quantity" required>
+      <input type="number" id="orderDiscount" placeholder="Discount %" value="0">
+      <button type="submit">Place Order</button>
+    </form>
+    <button onclick="loadOrders()">Refresh Orders</button>
+    <div id="orderList"></div>
+  </section>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+
+    // ---------- API HELPER ----------
+    async function api(path, method = 'GET', body = null) {
+      const options = { method, headers: {} };
+
+      if (body) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(body);
+      }
+
+      const res = await fetch(API_URL + path, options);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Something went wrong');
+        throw new Error(data.message);
+      }
+
+      return data;
+    }
+
+    // ---------- ITEMS ----------
+    document.getElementById('itemForm').onsubmit = async (e) => {
+      e.preventDefault();
+
+      await api('/item', 'POST', {
+        ItemDescription: document.getElementById('itemDesc').value,
+        Quantity: Number(document.getElementById('itemQty').value),
+        Price: Number(document.getElementById('itemPrice').value)
+      });
+
+      loadItems();
+      e.target.reset();
+    };
+
+    async function loadItems() {
+      const res = await api('/item');
+      document.getElementById('itemList').innerHTML = res.data.map(i => `
+        <p>
+          ID: ${i.ItemID} |
+          ${i.ItemDescription} |
+          Stock: ${i.Quantity} |
+          Price: ₹${i.Price}
+          <button onclick="deleteItem(${i.ItemID})">Delete</button>
+        </p>
+      `).join('');
+    }
+
+    async function deleteItem(id) {
+      await api('/item/' + id, 'DELETE');
+      loadItems();
+    }
+
+    // ---------- CUSTOMERS ----------
+    document.getElementById('customerForm').onsubmit = async (e) => {
+      e.preventDefault();
+
+      await api('/customer', 'POST', {
+        CustomerDescription: document.getElementById('custName').value,
+        Priority: false
+      });
+
+      loadCustomers();
+      e.target.reset();
+    };
+
+    async function loadCustomers() {
+      const res = await api('/customer');
+      document.getElementById('customerList').innerHTML = res.data.map(c => `
+        <p>
+          ID: ${c.CustomerID} |
+          ${c.CustomerDescription} |
+          Priority: ${c.Priority}
+          <button onclick="deleteCustomer(${c.CustomerID})">Delete</button>
+        </p>
+      `).join('');
+    }
+
+    async function deleteCustomer(id) {
+      await api('/customer/' + id, 'DELETE');
+      loadCustomers();
+    }
+
+    // ---------- ORDERS ----------
+    document.getElementById('orderForm').onsubmit = async (e) => {
+      e.preventDefault();
+
+      await api('/order', 'POST', {
+        CustomerID: Number(document.getElementById('orderCustId').value),
+        ItemID: Number(document.getElementById('orderItemId').value),
+        Qty: Number(document.getElementById('orderQty').value),
+        DiscountPercentage: Number(document.getElementById('orderDiscount').value || 0)
+      });
+
+      loadOrders();
+      loadItems();
+      loadCustomers();
+      e.target.reset();
+    };
+
+    async function loadOrders() {
+      const res = await api('/order');
+      document.getElementById('orderList').innerHTML = res.data.map(o => `
+        <p>
+          Order #${o.OrderId} |
+          CustomerID: ${o.CustomerID} |
+          ItemID: ${o.ItemID} |
+          Qty: ${o.Qty} |
+          Discount: ${o.DiscountPercentage}% |
+          <b>Total: ₹${o.TotalPrice}</b>
+          <button onclick="deleteOrder(${o.OrderId})">Cancel</button>
+        </p>
+      `).join('');
+    }
+
+    async function deleteOrder(id) {
+      await api('/order/' + id, 'DELETE');
+      loadOrders();
+      loadItems();
+      loadCustomers();
+    }
+
+    // ---------- INITIAL LOAD ----------
+    loadItems();
+    loadCustomers();
+    loadOrders();
+  </script>
+</body>
+</html>

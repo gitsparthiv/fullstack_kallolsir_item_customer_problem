@@ -33,17 +33,24 @@ export async function listItems({ limit = 50, offset = 0 } = {}) {
 }
 
 // Create a new item (manual stock entry)
-export async function createItem({ ItemDescription, Qty }) {
+export async function createItem({ ItemDescription, Quantity, Price }) {
+  const numericPrice = Number(Price);
+
+  if (Number.isNaN(numericPrice) || numericPrice <= 0) {
+    throw new Error('INVALID_PRICE');
+  }
+  
   const [result] = await pool.query(
-    `INSERT INTO \`092_Items\` (ItemDescription, Qty)
-     VALUES (?, ?)`,
-    [ItemDescription, Qty]
+    `INSERT INTO \`092_Items\` (ItemDescription, Quantity,Price)
+     VALUES (?, ?, ?)`,
+    [ItemDescription, Quantity, numericPrice]
   );
 
   return {
     ItemID: result.insertId,
     ItemDescription,
-    Qty
+    Quantity,
+    Price: numericPrice
   };
 }
 
