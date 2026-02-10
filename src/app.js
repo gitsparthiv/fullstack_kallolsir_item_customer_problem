@@ -1,5 +1,5 @@
 import express from 'express';// Express app = request handler pipeline
-  import morgan from 'morgan';// morgan is a logging middleware for Express that logs HTTP requests automatically.
+  import morgan from 'morgan';// morgan is a logging middleware for Express that logs HTTP requests automatically.logs mne jegulo terminal a dekhae request ale
   import customerRoutes from './routes/customer.routes.js';
   import { errorHandler } from './middlewares/errorHandler.js';
   import orderRoutes from './routes/order.routes.js';

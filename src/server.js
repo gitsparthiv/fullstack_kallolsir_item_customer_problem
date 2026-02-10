@@ -3,14 +3,14 @@ import 'dotenv/config';//Loads environment variables from .env . Makes process.e
   import { app } from './app.js';
   import { pingDatabase } from './config/database.js';
 
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3000;//Reads port from .env If not present → defaults to 3000
 
   async function startServer() {
     try {
       await pingDatabase();
       console.log('Database connection successful');
 
-      app.listen(PORT, () => {
+      app.listen(PORT, () => {//THIS is where requests start entering. Starts HTTP server on PORT
         console.log(`Server running on http://localhost:${PORT}`);
       });
     } catch (err) {

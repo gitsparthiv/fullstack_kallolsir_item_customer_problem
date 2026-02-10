@@ -4,11 +4,13 @@ import {
   handleListOrders,
   handleCreateOrder,
   handlePatchOrder,
-  handleDeleteOrder
+  handleDeleteOrder,
+  handleListDiscountedOrders
 } from '../controllers/order.controller.js';
 
 const router = Router();
 
+router.get('/discounted', handleListDiscountedOrders);
 router.get('/', handleListOrders);
 router.get('/:OrderId', handleGetOrder);
 router.post('/', handleCreateOrder);

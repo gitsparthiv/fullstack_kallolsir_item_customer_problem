@@ -3,7 +3,8 @@ import {
     listOrders,
     createOrder,
     patchOrderById,
-    deleteOrderById
+    deleteOrderById,
+    listDiscountedOrders
   } from '../services/order.service.js';
   
   // GET /api/order/:OrderId
@@ -31,7 +32,18 @@ import {
       return next(err);
     }
   }
-  
+  // ✅ GET /api/order/discounted
+export async function handleListDiscountedOrders(req, res, next) {
+  try {
+    const { limit, offset } = req.query;
+
+    const rows = await listDiscountedOrders({ limit, offset });
+    return res.json({ count: rows.length, data: rows });
+  } catch (err) {
+    return next(err);
+  }
+}
+
   // POST /api/order
   export async function handleCreateOrder(req, res, next) {
     try {
@@ -56,14 +68,8 @@ import {
     try {
       const OrderId = Number(req.params.OrderId);
   
-      const { CustomerID, ItemID, Qty } = req.body;
-
-const order = await createOrder({
-  CustomerID,
-  ItemID,
-  Qty
-});
-
+      const updated = await patchOrderById(OrderId, req.body);
+  
       if (!updated) {
         return res
           .status(404)
@@ -71,7 +77,7 @@ const order = await createOrder({
       }
   
       return res.json({
-        message: 'Order updated partially with the field/s given'
+        message: 'Order updated successfully'
       });
     } catch (err) {
       return next(err);
